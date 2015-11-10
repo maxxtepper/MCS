@@ -149,6 +149,7 @@ void mcs_rawInput(char* arg){
 			}
 		}
 		//is the data in range? if so, put the image data in the array
+		// WHY THE WEIRD ASS LOGIC?????? #strict inequalities
 		else if (x>=0 && x <=480 && y>=0 && y<=640 && intensity >=0 && intensity <=256 && (x!=0 && y!=0 && intensity!=255)){
 			//change from 'image' coordinates to plot coordinates
 			x = 480-x;
