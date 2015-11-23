@@ -1,4 +1,3 @@
-
 //Angle analysis program for MCS
 //preliminary script for analyzing data
 
@@ -9,11 +8,15 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1D.h>
+#include <TMath.h>
+#include <TF1.h>
 #include <TCanvas.h>
 #include <TPad.h>
 #include <stdio.h>
 #include <string>
 #include <sstream>
+
+Double_t gausFunc(Double_t*, Double_t*);
 
 void angleAnalysis_M(char* arg){
 
@@ -67,8 +70,9 @@ void angleAnalysis_M(char* arg){
 	TH1D *angle_histo = new TH1D("angle_histo", "Distribution of scattering angles", 60, -40, 40);
 	
 	//Fill the histograms with data from angleT
-	int count;
-	int totCount;
+	int count = 0;
+	int totCount = 0;
+	cout << "The number of entries to be checked  = "<< nentries << endl;
 	for (Int_t i=0; i<nentries; i++) {
 		angleT->GetEntry(i);
 		x_intProj->Fill(x_int);
@@ -81,31 +85,28 @@ void angleAnalysis_M(char* arg){
 	}
 	cout << "The number of events in the interval = " << count << endl;
 	cout << "The number of events in total        = " << totCount << endl;
+
+	//Make the function to be fit
+	TF1 *func = new TF1("gausFunc", gausFunc, -40, 40, 6);
+
+	//Get and set parameters for fitting
+	Double_t mag[2] = {0};
+	Double_t mean[2] = {0};
+	Double_t RMS[2] = {0};
+	Double_t scale[2] = {0.2, 0.8};
+
+	for (int i=0; i<2; i++) {
+		mag[i] = 1*scale[i];
+		mean[i] = angle_histo->GetMean()*scale[i];
+		RMS[i] = angle_histo->GetRMS()*scale[i];
+	}
+
+	func->SetParameters(mag[0], mean[0], RMS[0], mag[1], mean[1], RMS[1]);	
+	func->SetParNames("Constant1", "Mean_value1", "Sigma1", "Constant2", "Mean_value2", "Sigma2");
 	
-	TF1 *gausFit = new TF1("gausFit", gausFunc, -40, 40);
+	//Take the histo and fit it
+	angle_histo->Fit("gausFunc");
 
-	//Make and fill the canvas
-/*	TCanvas *proj = new TCanvas("proj","Projections of x_int and y_int",0,0,800,800);
-
-	TPad *xPad = new TPad("xPad", "Vertical slice of canvas", 0,0, 0.0, 0.5, 1.0, 21);
-	TPad *yPad = new TPad("yPad", "Vertical slice of canvas", 0.5, 0.0, 1.0, 1.0, 21);
-
-	xPad->cd();
-//	x_intProj->SetStats(false);
-	x_intProj->GetXaxis()->SetTitle("X intersection position (px)");
-	x_intProj->GetXaxis()->CenterTitle();
-	x_intProj->GetYaxis()->SetTitle("Number of frames");
-	x_intProj->GetYaxis()->CenterTitle();
-	x_intProj->Draw();
-
-	yPad->cd();
-//	y_intProj->SetStats(false);
-	y_intProj->GetXaxis()->SetTitle("Y intersection position (px)");
-	y_intProj->GetXaxis()->CenterTitle();
-	y_intProj->GetYaxis()->SetTitle("Number of frames");
-	y_intProj->GetYaxis()->CenterTitle();
-	y_intProj->Draw();
-*/	
 	//Write the histograms to root file
 	x_intProj->Write();
 	y_intProj->Write();
@@ -114,4 +115,14 @@ void angleAnalysis_M(char* arg){
 	//Close the files
 	inFile->Close();
 	outFile->Close();	
+}
+
+Double_t gausFunc(Double_t *x, Double_t *par) {
+	Double_t arg[2] = {0};
+	if (par[2]!=0 && par[5]!=0) {
+		arg[0] = ((x[0]-par[1])/par[2]);
+		arg[1] = ((x[0]-par[4])/par[5]);
+	}
+	Double_t fitVal = par[0]*TMath::Exp(-0.5*arg[0]*arg[0]) + par[3]*TMath::Exp(-0.5*arg[1]*arg[1]);
+	return fitVal;
 }	
