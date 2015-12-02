@@ -33,7 +33,7 @@ void histoLoader(char* arg){
 	outfileName = outPrefix + outF;
 
 	int i = 0;
-	Double_t thetaRMS[4];
+	Double_t thetaRMS[5];
 	while(true){
 		if( std::getline(stm, layers, ' ') ){
 			inF        = "analysis_" + layers + "layers.root";
@@ -58,7 +58,7 @@ void histoLoader(char* arg){
 	
 	TFile *outFile = new TFile(outfileName.c_str(), "RECREATE");
 
-	Double_t x_data[4] = {0, 2.54 / 4, 2.54 / 2, 2.54};
+	Double_t x_data[5] = {0, 2.54 / 4, 2.54 / 2, 2.54*3/4, 2.54};
 	Double_t x[20] = {0};
 	Double_t y[20] = {0};
 	int j=1;
@@ -71,13 +71,14 @@ void histoLoader(char* arg){
 	}
 
 	TGraph *moliGraph = new TGraph(20, x, y);
-	TGraph *dataGraph = new TGraph(4, x_data, thetaRMS);
+	TGraph *dataGraph = new TGraph(5, x_data, thetaRMS);
 	//datGraph->Fit("moliFunc");
 
-	std::cout << thetaRMS[0] << std::endl;
-	std::cout << thetaRMS[1] << std::endl;
-	std::cout << thetaRMS[2] << std::endl;
-	std::cout << thetaRMS[3] << std::endl;
+	std::cout << "thetaRMS[0] = " << thetaRMS[0] << std::endl;
+	std::cout << "thetaRMS[1] = " << thetaRMS[1] << std::endl;
+	std::cout << "thetaRMS[2] = " << thetaRMS[2] << std::endl;
+	std::cout << "thetaRMS[3] = " << thetaRMS[3] << std::endl;
+	std::cout << "thetaRMS[4] = " << thetaRMS[4] << std::endl;
 	
 	moliGraph->Draw("AP");	
 	dataGraph->Draw("*");	
