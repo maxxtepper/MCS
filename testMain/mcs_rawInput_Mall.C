@@ -30,8 +30,8 @@ void mcs_rawInput_Mall(char* arg) {
 	std::string layers;
 	std::istringstream strm(arg);
 
-	inPrefix = "/home/p180f/Do_Jo_Ol_Ma/Analysis/MainProcedure/testMain/rawTxt";
-	outPrefix = "/home/p180f/Do_Jo_Ol_Ma/Analysis/MainProcedure/testMain/rawRoot";jj 
+	inPrefix = "/home/p180f/Do_Jo_Ol_Ma/Analysis/MainProcedure/testMain/rawTxt/";
+	outPrefix = "/home/p180f/Do_Jo_Ol_Ma/Analysis/MainProcedure/testMain/rawRoot/"; 
 
 	while (true) {	
 		if (std::getline(strm, layers, ' ')) {
@@ -116,7 +116,6 @@ void mcs_rawInput_Mall(char* arg) {
 							//if this is the beginning of the second event or after, store to the tree
 							if (pNum>0){
 								std::cout << "Processing frame number " << pNum << "\r";//this overwrites the line every time
-								
 								//Fill the raw data tree
 								rawT->Fill();
 
@@ -187,10 +186,11 @@ void mcs_rawInput_Mall(char* arg) {
 						//is the data in range? if so, put the image data in the array
 						// WHY THE WEIRD ASS LOGIC?????? #strict inequalities
 						else if (x>=0 && x <=480 && y>=0 && y<=640 && intensity >=0 && intensity <=256 && (x!=0 && y!=0 && intensity!=255)){
-							//change from 'image' coordinates to plot coordinates
+							//change from 'image' coordinates to plot coordinate
+
 							x = 480-x;
 							y = 640-y;
-							frame[x][y]=intensity;
+							frame[x][y] = intensity;
 							if (x>=width_cuts_lower && x <=width_cuts_upper && y>=0 && y<=640 && intensity >=0 && intensity <=256 && (x!=0 && y!=0 && intensity!=255)){
 								//Load the intensities into the frame arrays
 								frame_cuts[x][y] = intensity;
@@ -219,15 +219,17 @@ void mcs_rawInput_Mall(char* arg) {
 					cutsT->Write();
 					fourChamT->Write();
 					threeChamT->Write();
-					
+					std::cout <<"number of entries with 4 chambers: " << fourChamT->GetEntries() << std::endl;	
 					//Close the ROOT file
 					outfile->Close();
 				} else {
+					std::cout << "No more files exist\n";
 					break;
 				}
 				runI++;
 			}
 		} else {
+			std::cout << "No more arguments exist\n";
 			break;
 		}
 	}
