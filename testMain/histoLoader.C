@@ -36,14 +36,14 @@ void histoLoader(char* arg){
 	Double_t thetaRMS[5];
 	while(true){
 		if( std::getline(stm, layers, ' ') ){
-			inF        = "analysis_" + layers + "layers.root";
+			inF        = "errorAnalysis_" + layers + "layers.root";
 			infileName = inPrefix + inF;
 
 			TFile *inFile = new TFile(infileName.c_str());
 			TF1 *func = (TF1*)inFile->Get("gausFuncCuts");
 			Double_t RMS1;
 			Double_t RMS2;	
-			RMS1 =TMath::Abs(func->GetParameter("Sigma1"));
+			RMS1 = TMath::Abs(func->GetParameter("Sigma1"));
 			RMS2 = TMath::Abs(func->GetParameter("Sigma2"));
 			std::cout << "RMS1_" << i << " = " << RMS1 << std::endl;
 			std::cout << "RMS2_" << i << " = " << RMS2 << std::endl;
@@ -91,7 +91,7 @@ void histoLoader(char* arg){
 Double_t moliFunc(Double_t x) {
 	Double_t const m = 105.6583715;
 	Double_t p  = 248.5;
-	Double_t Bc = TMath::Sqrt((p*p) / (m*m + (p*p)));
+	Double_t Bc = p / TMath::Sqrt((m*m + (p*p)));
 	Double_t z  = 1;
 	Double_t X0 = 0.56;
 	/*

@@ -14,6 +14,7 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <TMath.h>
 
 void analysisFile_Mall(char* arg){
 
@@ -75,6 +76,7 @@ void analysisFile_Mall(char* arg){
 
 			//define analysis variables
 			double ang[3] = {0};
+			double angD = 0;
 			double x[4] = {0};
 			double y[4] = {0};
 			double x_int = 0;
@@ -89,6 +91,7 @@ void analysisFile_Mall(char* arg){
 
 			//branch time
 			angleT->Branch("ang",&ang,"ang[3]/D");
+			angleT->Branch("angD",&angD,"angD/D");
 			angleT->Branch("x", &x, "x[4]/D");
 			angleT->Branch("y", &y, "y[4]/D");
 			angleT->Branch("x_int", &x_int, "x_int/D");
@@ -100,6 +103,7 @@ void analysisFile_Mall(char* arg){
 			angleT->Branch("b1", &b1, "b1/D");
 			
 			angleCutsT->Branch("ang",&ang,"ang[3]/D");
+			angleCutsT->Branch("angD",&angD,"angD/D");
 			angleCutsT->Branch("x", &x, "x[4]/D");
 			angleCutsT->Branch("y", &y, "y[4]/D");
 			angleCutsT->Branch("x_int", &x_int, "x_int/D");
@@ -123,7 +127,7 @@ void analysisFile_Mall(char* arg){
 			TH1D *chamberStackY = new TH1D("chamberStackY", "Sparks stacked and centered at their RMS", height/2, -height/2, height/2);
 			
 			Int_t nentries = chain->GetEntries();
-
+			int count = 0;
 			for (Int_t i=0; i<nentries; i++) {
 				chain->GetEntry(i);
 				for (int x=0; x<width; x++) {
@@ -207,18 +211,42 @@ void analysisFile_Mall(char* arg){
 //				std::cout << "ang[0], frame" << i << " = " << ang[0]<< std::endl;
 //				std::cout << "ang[1], frame" << i << " = " << ang[1]<< std::endl;
 //				cin.ignore();
-				 
+
+				//Make array of xdiff RMS
+				double x_diffRMS[5] = {41.06, 45.03, 43.29, 40.71, 34.25};		
+				double xRMS[4] = {0};
+		
+				xRMS[0] = chamber1x->GetRMS();
+				xRMS[1] = chamber2x->GetRMS();
+				xRMS[2] = chamber3x->GetRMS();
+				xRMS[3] = chamber4x->GetRMS();
+ 
 				if(ang[0] < 0)
 					ang[0] += 180;
 				if(ang[1] < 0)
 					ang[1] += 180;
 				ang[2] = (ang[1]-ang[0]);
-				
+			
+				//OTHER WAY TO FIND THE ANGLES
+				double x_comp[2] = {(x[3]-x[2]), (x[1]-x[0])};
+				double y_comp[2] = {(y[3]-y[2]), (y[1]-y[0])};
+					
+				double vec_mag[2];
+				vec_mag[0] = TMath::Sqrt(x_comp[0]*x_comp[0]+y_comp[0]*y_comp[0]);	
+				vec_mag[1] = TMath::Sqrt(x_comp[1]*x_comp[1]+y_comp[1]*y_comp[1]);
+	
+				double cosArg = ((x_comp[0]*x_comp[1]+y_comp[0]*y_comp[1])/(vec_mag[0]*vec_mag[1]));
+				angD = acos(cosArg)*convert;	
+
+				if (x_comp[1]<x_comp[0]) {
+					angD*=-1;
+				}	
 				//Fill the angle tree
 				angleT->Fill();
-				
-				if (x_diff<34 && x_diff>-34) {
+				int temp = atoi(layers.c_str());	
+				if ((x_diff < x_diffRMS[temp] && x_diff > -1 * x_diffRMS[temp]) && ((x_int<380 && x_int>100) || (ang[2]<3 && ang[2]>-3))) {
 					angleCutsT->Fill();
+					count++;
 				}
 			
 				//reset the histos for the next entry
@@ -239,6 +267,7 @@ void analysisFile_Mall(char* arg){
 
 			//	-Probably need a new tree with branches determined by the previous comments
 			//Write the trees into the root file
+			std::cout << "Number in cuts = " << count << std::endl;
 			angleT->Write();
 			angleCutsT->Write();
 			chamberStackX->Write();
