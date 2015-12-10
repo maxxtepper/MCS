@@ -1,0 +1,34 @@
+Instruction for using this code:
+
+All code can be compiled in ROOT for use.
+
+Code is based on the following naming scheme:
+
+runx_ylayers.txt	//The first files used
+x=run number, y=layer
+Example:
+run0_2layers.txt --> The raw ASCII data for the 0th run of 2 layers.
+
+Using this naming scheme will ensure all scripts work. Be sure to change the prefixes for the in and out files in all scripts depending on where you would like to save output files and where input files have been saved. 
+
+Procedure:
+mcs_rawInput.C
+	//Extracts raw ASCII data into root files
+angleDataGenerator.C
+	//Generates lines and calculates angles for 4 spark events
+errorGenerator.C
+	//Calculates error in all values (makes tree for next script)
+errorAnalysis.C
+	//Generates histograms of angle distributions with cuts
+moliereFitter.C
+	//Fits data to moliere function
+
+Other functions:
+frameStack.C
+	//Stacks all of the pixel data into histograms
+frameViewer.C
+	//See individual triggered events data
+frameViewerAngles.C
+	//See the line fitting to data
+sparkEff.C
+	//Check distribution of number of pixels per spark
